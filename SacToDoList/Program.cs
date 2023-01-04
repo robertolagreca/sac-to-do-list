@@ -13,7 +13,10 @@
 //funzionalità desiderabile ma opzionale)
 //0 - chiudere il programma
 
-using TheToDoList;
+global using Microsoft.EntityFrameworkCore;
+global using System.ComponentModel.DataAnnotations.Schema;
+global using System.ComponentModel.DataAnnotations;
+global using TheToDoList;
 
 List<Activity> listaDiAttivitaDiTest = new() {
     new Activity(title: "Portare fuori il cane di Gianni", new DateTime(2023, 1, 6), false),
@@ -56,7 +59,7 @@ void CloseProgram() { Environment.Exit(0); }
 void ShowActivities() {
     Console.Clear();
     foreach (Activity activity in listaDiAttivitaDiTest) {
-        Console.WriteLine($"[{activity.ID}] {activity.Title}, {activity.Date}");
+        Console.WriteLine($"[{activity.ActivityId}] {activity.Title}, {activity.Date}");
     }
 }
 
@@ -98,16 +101,22 @@ void RemoveActivity() {
 
 }
 
-// METODO 4: Modifica 
+// METODO 4: Modifica titolo di un'attività
 void ModifyActivityTitle() {
 
 }
+
+// METODO 5: Modifica stato dell'attività
 void ModifyActivityState() {
 
 }
+
+// METODO 6: Modifica data dell'attività
 void ModifyActivityDate() {
 
 }
+
+// METODO 7: Mostra attività ancora da fare, paginate di 3 in 3
 void ShowUnfinishedActivities() {
 
 }

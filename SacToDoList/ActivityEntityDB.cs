@@ -7,21 +7,14 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SacToDoList
-{
+namespace TheToDoList {
     [Table("activity")]
-    public class ActivityEntityDB
-    { 
-            [Key]
-            public int Id { get; set; }
-            [Required]
-            public string Name { get; set; }
-            public string Description { get; set; }
-            [Required]
-            public DateTime Date_start { get; set; }
-            public DateTime Date_end { get; set; }
-            [Required]
-            public string Status { get; set; }
-        
+    public class ActivityEntityDB {
+        [Key]
+        public int Id { get; set; }
+        public string Title { get; set; }
+        public DateTime? Date { get; set; }
+        public bool Status { get; set; } = false;
+
     }
 }

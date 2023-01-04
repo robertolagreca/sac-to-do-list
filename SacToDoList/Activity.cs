@@ -1,22 +1,34 @@
 ﻿namespace TheToDoList {
+    [Table(nameof(Activity))]
     public class Activity {
         // CAMPI
-        private readonly int _id;
-        private string _title;
-        private DateTime _date;
-        private bool _finished;
+        private string title;
+        private DateTime? date;
+        private bool finished;
 
         // PROPRIETÀ
-        public int ID { get { return _id; } init { _id = value; } }
-        public string Title { get { return _title; } set { _title = value; } }
-        public DateTime Date { get { return _date; } set { _date = value; } }
-        public bool Finished { get => _finished; set => _finished = value; }
+        [Key]
+        public int ActivityId { get; init; }
+        [MaxLength(128)]
+        public string Title {
+            get { return title; }
+            set { title = value ?? throw new ArgumentNullException(nameof(title), "Il titolo dell'attività non può essere nullo."); }
+        }
+        public DateTime? Date { get { return date; } set { date = value; } }
+        public bool Finished { get => finished; set => finished = value; }
 
         // COSTRUTTORI
 #pragma warning disable CS8618
-        public Activity(string title, DateTime date, bool finished = false) {
-            ID = new Random().Next(5000);
-            Title = title ?? throw new ArgumentNullException(nameof(title), "Il titolo dell'attività non può essere nullo.");
+        public Activity(int id, string title, DateTime? date, bool finished = false) {
+            ActivityId = id;
+            Title = title;
+            Date = date;
+            Finished = finished;
+        }
+
+        public Activity(string title, DateTime? date, bool finished = false)
+        {
+            Title = title;
             Date = date;
             Finished = finished;
         }
