@@ -87,7 +87,7 @@ void AddActivity() {
     string? inputDate = Console.ReadLine();
 
     DateTime eventDate;
-    while (!DateTime.TryParseExact(inputDate, "d/M/yyyy", null, System.Globalization.DateTimeStyles.None, out eventDate)) {
+    while (!Activity.TryParseDate(inputDate, out eventDate)) {
         Console.Write("La data da lei inserita è invalida, inserisca la data nel formato (gg/dd/yyyy): ");
         inputDate = Console.ReadLine();
     }
@@ -128,7 +128,7 @@ void ModifyActivityTitle() {
     using var db = new ToDoListContext();
 
     // Prendi un Id valido
-    int idToModify = ActivitySelector.ValidIdFromInput(prompt: "Inserisci l'Id dell'attività da rimuovere: ");
+    int idToModify = ActivitySelector.ValidIdFromInput(prompt: "Inserisci l'Id dell'attività a cui modificare il titolo: ");
 
     // Se c'è un'attività con 'Id, modifica il titolo
     var activityFound = db.Activities.SelectActivityById(idToModify);
@@ -143,6 +143,7 @@ void ModifyActivityTitle() {
 
         Console.WriteLine($"Aggiornato il titolo da \"{activityFound.Title}\" a \"{newTitle}\"");
         activityFound.Title = newTitle;
+        Console.WriteLine($"Apportati {db.SaveChanges()} cambiamenti al database");
     }
     else {
         Console.WriteLine("Non sono state trovate attività con quell'Id.");
@@ -159,6 +160,7 @@ void ModifyActivityState() {
 
     int idToChange = ActivitySelector.ValidIdFromInput(prompt: "Inserisci l'Id dell'attività a cui modificare lo stato: ");
 
+    // TODO: Aggiornare funzione per usare ActivitySelector.SelectById
     foreach (Activity activity in db.Activities) {
         if (activity.ActivityId == idToChange) {
             Console.WriteLine($"Indichi il nuovo stato dell'attività \"{activity.Title}\":");
@@ -174,14 +176,17 @@ void ModifyActivityState() {
                 case 1:
                     Console.WriteLine($"L'attività \"{activity.Title}\" avrà come nuovo stato \"Non finita\"");
                     activity.State = ActivityState.Unfinished;
+                    Console.WriteLine($"Apportati {db.SaveChanges()} cambiamenti al database");
                     break;
                 case 2:
                     Console.WriteLine($"L'attività \"{activity.Title}\" avrà come nuovo stato \"In corso\"");
                     activity.State = ActivityState.Ongoing;
+                    Console.WriteLine($"Apportati {db.SaveChanges()} cambiamenti al database");
                     break;
                 case 3:
                     Console.WriteLine($"L'attività \"{activity.Title}\" avrà come nuovo stato \"Finita\"");
                     activity.State = ActivityState.Finished;
+                    Console.WriteLine($"Apportati {db.SaveChanges()} cambiamenti al database");
                     break;
             }
         }
@@ -196,7 +201,7 @@ void ModifyActivityDate() {
 
     Console.Clear();
     int idToFind = ActivitySelector.ValidIdFromInput(prompt: "Inserisci l'Id dell'attività a cui modificare la data: ");
-    
+
     using var db = new ToDoListContext();
     var activityFoundDate = db.Activities.SelectActivityById(idToFind);
 
@@ -212,6 +217,7 @@ void ModifyActivityDate() {
 
         Console.WriteLine($"Aggiornata la data di \"{activityFoundDate.Title}\" da \"{activityFoundDate.Date}\" a //\"{newDate}\"");
         activityFoundDate.Date = newDate;
+        Console.WriteLine($"Apportati {db.SaveChanges()} cambiamenti al database");
     }
     else {
         Console.WriteLine("Non sono state trovate attività con quell'Id.");
@@ -223,6 +229,8 @@ void ModifyActivityDate() {
 
 // METODO 7: Mostra attività ancora da fare, paginate di 3 in 3
 void ShowUnfinishedActivities() {
+    Console.Clear();
+    Console.WriteLine("Ecco le attività ancora da svolgere: ");
     using var db = new ToDoListContext();
 
     var unfinishedActivities = db.Activities.SelectUnfinishedActivities()

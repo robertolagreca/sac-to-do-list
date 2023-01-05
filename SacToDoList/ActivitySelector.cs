@@ -4,11 +4,19 @@ namespace TheToDoList {
     public static class ActivitySelector {
         public static Activity? SelectActivityById(this IEnumerable<Activity> activities, int id) {
             IEnumerable<Activity> activitiesFound = activities.Where(act => act.ActivityId == id);
-            if (activitiesFound.Any()) {
-                return activitiesFound.First();
-            } else {
-                return null;
-            }
+            return activitiesFound.Any() ? activitiesFound.First() : null;
+        }
+
+        public static IEnumerable<Activity> SelectActivitiesByDate(this IEnumerable<Activity> activities, DateTime date) {
+            return activities.Where(a => a.Date == date);
+        }
+
+        public static IEnumerable<Activity> SelectActivitiesByTitle(this IEnumerable<Activity> activities, string titleToSearch) {
+            return activities.Where(a => a.Title.Contains(titleToSearch));
+        }
+
+        public static IEnumerable<Activity> SelectActivitiesByState(this IEnumerable<Activity> activities, ActivityState state) {
+            return activities.Where(a => a.State == state);
         }
 
         public static int ValidIdFromInput() {

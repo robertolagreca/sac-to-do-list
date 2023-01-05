@@ -56,6 +56,11 @@ namespace TheToDoList {
             }
             return "Questa stringa non dovrebbe mai essere visibile. Contatta il developer se sei arrivato qui.";
         }
+
+        public static bool TryParseDate(string data, out DateTime date) {
+            return DateTime.TryParseExact(data, "d/M/yyyy", null, System.Globalization.DateTimeStyles.None, out date)
+                   && isDateValid(date);
+        }
     }
 
     public enum ActivityState {
