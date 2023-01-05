@@ -20,23 +20,6 @@ global using Microsoft.EntityFrameworkCore;
 global using System.ComponentModel.DataAnnotations.Schema;
 global using System.ComponentModel.DataAnnotations;
 global using TheToDoList;
-using Microsoft.EntityFrameworkCore.Diagnostics;
-
-List<Activity> listaDiAttivitaDiTest = new() {
-    new Activity(id: 1, title: "Portare fuori il cane di Gianni", new DateTime(2023, 1, 6), ActivityState.Finished),
-    new Activity(id: 2, title: "Vincere MVP nella stagione 2022/2023 dell'NBA", new DateTime(2023, 8, 10)),
-    new Activity(id: 3, title: "Giocare ad ULTRAKILL", null, ActivityState.Ongoing),
-    new Activity(id: 4, title: "Far giocare Outer Wilds al resto della classe", null),
-    new Activity(id: 1, title: "Portare fuori il cane di Gianni", new DateTime(2023, 1, 6), ActivityState.Finished),
-    new Activity(id: 2, title: "Vincere MVP nella stagione 2022/2023 dell'NBA", new DateTime(2023, 8, 10)),
-    new Activity(id: 3, title: "Giocare ad ULTRAKILL", null, ActivityState.Ongoing),
-    new Activity(id: 4, title: "Far giocare Outer Wilds al resto della classe", null),
-    new Activity(id: 1, title: "Portare fuori il cane di Gianni", new DateTime(2023, 1, 6), ActivityState.Finished),
-    new Activity(id: 2, title: "Vincere MVP nella stagione 2022/2023 dell'NBA", new DateTime(2023, 8, 10)),
-    new Activity(id: 3, title: "Giocare ad ULTRAKILL", null, ActivityState.Ongoing),
-    new Activity(id: 4, title: "Far giocare Outer Wilds al resto della classe", null)
-
-};
 
 Dictionary<string, Action> choices = new() {
     { "Chiudi il programma", CloseProgram },
@@ -73,9 +56,12 @@ void CloseProgram() { Environment.Exit(0); }
 
 // METODO 1: Stampa tutte le attività
 void ShowActivities() {
+
     Console.Clear();
-    foreach (Activity activity in listaDiAttivitaDiTest.OrderBy(a => a.Date)) {
-        Console.WriteLine(activity);
+    using (var db = new ToDoListContext()) {
+        foreach (Activity activity in db.Activities.OrderBy(a => a.Date)) {
+            Console.WriteLine(activity);
+        }
     }
 
     Console.WriteLine("Premi invio per continuare...");
@@ -106,7 +92,10 @@ void AddActivity() {
         inputDate = Console.ReadLine();
     }
 
-    listaDiAttivitaDiTest.Add(new Activity(title: inputTitle, date: eventDate, state: ActivityState.Unfinished));
+    using var db = new ToDoListContext();
+    db.Activities.Add(new Activity(title: inputTitle, date: eventDate, state: ActivityState.Unfinished));
+    Console.WriteLine($"Apportati {db.SaveChanges()} cambiamenti al database");
+
 
     Console.WriteLine("Premi invio per continuare...");
     Console.ReadLine();
@@ -114,17 +103,20 @@ void AddActivity() {
 
 // METODO 3: Rimuovi attività
 void RemoveActivity() {
+    using var db = new ToDoListContext();
     Console.Clear();
 
     int idToRemove = ActivitySelector.ValidIdFromInput(prompt: "Inserisci l'Id dell'attività da rimuovere: ");
 
-    foreach (Activity activity in listaDiAttivitaDiTest) {
+    foreach (Activity activity in db.Activities) {
         if (activity.ActivityId == idToRemove) {
-            listaDiAttivitaDiTest.Remove(activity);
+            db.Activities.Remove(activity);
             Console.WriteLine($"Rimossa attività \"{activity.Title}\" con ID {activity.ActivityId}");
             break;
         }
     }
+
+    Console.WriteLine($"Apportati {db.SaveChanges()} cambiamenti al database");
 
     Console.WriteLine("Premi invio per continuare...");
     Console.ReadLine();
@@ -133,12 +125,13 @@ void RemoveActivity() {
 // METODO 4: Modifica titolo di un'attività
 void ModifyActivityTitle() {
     Console.Clear();
+    using var db = new ToDoListContext();
 
     // Prendi un Id valido
     int idToModify = ActivitySelector.ValidIdFromInput(prompt: "Inserisci l'Id dell'attività da rimuovere: ");
 
     // Se c'è un'attività con 'Id, modifica il titolo
-    var activityFound = listaDiAttivitaDiTest.SelectActivityById(idToModify);
+    var activityFound = db.Activities.SelectActivityById(idToModify);
     if (activityFound != null) {
         Console.Write($"Trovata un'attività \"{activityFound.Title}\", qual'è il nuovo titolo?: ");
         string newTitle = Console.ReadLine();
@@ -162,10 +155,11 @@ void ModifyActivityTitle() {
 // METODO 5: Modifica stato dell'attività
 void ModifyActivityState() {
     Console.Clear();
+    using var db = new ToDoListContext();
 
     int idToChange = ActivitySelector.ValidIdFromInput(prompt: "Inserisci l'Id dell'attività a cui modificare lo stato: ");
 
-    foreach (Activity activity in listaDiAttivitaDiTest) {
+    foreach (Activity activity in db.Activities) {
         if (activity.ActivityId == idToChange) {
             Console.WriteLine($"Indichi il nuovo stato dell'attività \"{activity.Title}\":");
             Console.WriteLine("[1] Non finita");
@@ -202,8 +196,9 @@ void ModifyActivityDate() {
 
     Console.Clear();
     int idToFind = ActivitySelector.ValidIdFromInput(prompt: "Inserisci l'Id dell'attività a cui modificare la data: ");
-
-    var activityFoundDate = listaDiAttivitaDiTest.SelectActivityById(idToFind);
+    
+    using var db = new ToDoListContext();
+    var activityFoundDate = db.Activities.SelectActivityById(idToFind);
 
 
     if (activityFoundDate != null) {
@@ -228,7 +223,9 @@ void ModifyActivityDate() {
 
 // METODO 7: Mostra attività ancora da fare, paginate di 3 in 3
 void ShowUnfinishedActivities() {
-    var unfinishedActivities = listaDiAttivitaDiTest.SelectUnfinishedActivities()
+    using var db = new ToDoListContext();
+
+    var unfinishedActivities = db.Activities.SelectUnfinishedActivities()
                                                     .OrderBy(a => a.Date);
     int count = 0;
     foreach (var activity in unfinishedActivities) {
@@ -237,6 +234,7 @@ void ShowUnfinishedActivities() {
         if (count % 3 == 0) { Console.WriteLine(Environment.NewLine); }
     }
 
+    if (count == 0) { Console.WriteLine("Tutte le attività sono state completate!"); }
     Console.WriteLine("Premi invio per continuare...");
     Console.ReadLine();
 }

@@ -45,7 +45,7 @@ namespace TheToDoList {
         }
 
         public override string ToString() {
-            return $"[{ActivityId}] {Title}, {Date}, stato: {TranslateState(State)}";
+            return $"[{ActivityId}] {Title}, {(Date != null ? $"{Date}, " : "")}stato: {TranslateState(State)}";
         }
 
         public static string TranslateState(ActivityState state) {
