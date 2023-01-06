@@ -8,8 +8,6 @@ namespace TheToDoList {
     public class Activity {
         // CAMPI
         private string title;
-        private DateTime? date;
-        private ActivityState state = ActivityState.Unfinished;
 
         // PROPRIETÀ
         [Key]
@@ -17,11 +15,14 @@ namespace TheToDoList {
         [MaxLength(128)]
         public string Title {
             get { return title; }
-            set { title = isTitleValid(value) ? value : throw new ArgumentException("Il titolo provveduto non è valido. Un titolo non può essere nullo, spazio vuoto, o più di 128 caratteri.", nameof(value)); }
+            set { title = IsTitleValid(value) ? value : throw new ArgumentException("Il titolo provveduto non è valido. Un titolo non può essere nullo, spazio vuoto, o più di 128 caratteri.", nameof(value)); }
         }
-        public DateTime? Date { get { return date; } set { date = value; } }
+        public DateTime? Date { get; set; }
         [Column(TypeName = "nvarchar(12)")]
-        public ActivityState State { get => state; set => state = value; }
+        public ActivityState State { get; set; } = ActivityState.Unfinished;
+
+        // RELAZIONI
+        public List<Tag> Tags { get; set; }
 
         // COSTRUTTORI
         public Activity(string title, DateTime? date = null, ActivityState state = ActivityState.Unfinished) {
@@ -36,16 +37,23 @@ namespace TheToDoList {
         }
 
         // METODI PUBBLICI
-        public static bool isTitleValid(string title) {
+        public static bool IsTitleValid(string title) {
             return !string.IsNullOrWhiteSpace(title) && title.Length <= 128;
         }
 
-        public static bool isDateValid(DateTime date) {
+        public static bool IsDateValid(DateTime date) {
             return date > DateTime.Now;
         }
 
         public override string ToString() {
-            return $"[{ActivityId}] {Title}, {(Date != null ? $"{Date}, " : "")}stato: {TranslateState(State)}";
+            string finalTagsString = "";
+            if (Tags != null && Tags.Any()) {
+                IEnumerable<string> tagsToStrings = Tags.Select(tag => $"[{tag}]");
+                finalTagsString = $"\nTags: {string.Join(" ", tagsToStrings)}";
+            }
+
+            return $"[{ActivityId}] {Title}, {(Date != null ? $"{Date}, " : "")}stato: {TranslateState(State)}" +
+                finalTagsString;
         }
 
         public static string TranslateState(ActivityState state) {
@@ -59,7 +67,7 @@ namespace TheToDoList {
 
         public static bool TryParseDate(string data, out DateTime date) {
             return DateTime.TryParseExact(data, "d/M/yyyy", null, System.Globalization.DateTimeStyles.None, out date)
-                   && isDateValid(date);
+                   && IsDateValid(date);
         }
     }
 

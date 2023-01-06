@@ -54,24 +54,74 @@ while (true) {
 // METODO 0: Chiudi il programma
 void CloseProgram() { Environment.Exit(0); }
 
-// METODO 1: Stampa tutte le attività
-// TODO: Ricerche di default
 // TODO: Tags
 // TODO: Impiegato assegnato ad attività
 // TODO: Mostra tutte le tag nel database
 // TODO: Sistema di logs
+// METODO 1: Stampa tutte le attività
 void ShowActivities() {
-
-    Console.Clear();
     using var db = new ToDoListContext();
 
-    foreach (Activity activity in db.Activities.OrderBy(a => a.Date)) {
-        Console.WriteLine(activity);
+    IEnumerable<Activity> activities = null;
+
+    bool validChoice = false;
+    while (validChoice == false) {
+        Console.Clear();
+        Console.WriteLine("[0] Annulla visualizzazione\n" +
+                          "[1] Tutte le attività\n" +
+                          "[2] Per titolo\n" +
+                          "[3] Per data\n" +
+                          "[4] Per stato");
+        char choice = Convert.ToChar(Console.ReadLine());
+        switch (choice) {
+            case '0': { return; }
+            case '1': {
+                    activities = db.Activities;
+                    validChoice = true;
+                    break;
+                }
+            case '2': {
+                    string inputTitle = ActivitySelector.ValidTitleFromInput("Inserisci il titolo con cui cercare: ");
+                    activities = db.Activities.SelectActivitiesByTitle(inputTitle);
+                    validChoice = true;
+                    break;
+                }
+            case '3': {
+                    DateTime inputDate = ActivitySelector.ValidDateTimeFromInput("Inserisci la data con cui cercare: ");
+                    activities = db.Activities.SelectActivitiesByDate(inputDate);
+                    validChoice = true;
+                    break;
+                }
+            case '4': {
+                    ActivityState inputState = ActivitySelector.ValidStateFromInput("Inserisci uno stato con cui cercare: ");
+                    activities = db.Activities.SelectActivitiesByState(inputState);
+                    validChoice = true;
+                    break;
+                }
+            default: {
+                    Console.WriteLine("La scelta data non è valida. Riprova.");
+                    Console.ReadLine();
+                    break;
+                }
+        }
+
+
+    }
+
+    Console.Clear();
+    if (activities.Any()) {
+        foreach (Activity activity in activities.OrderBy(a => a.Date)) {
+            Console.WriteLine(activity);
+        }
+    }
+    else {
+        Console.WriteLine("Non sono state trovate attività che soddisfano i criteri di ricercha.");
     }
 
     Console.WriteLine("Premi invio per continuare...");
     Console.ReadLine();
 }
+
 
 //METODO 2: Aggiunta di una nuova attività alla lista
 
@@ -79,26 +129,13 @@ void AddActivity() {
     Console.Clear();
 
     // Prendi titolo dall'utente
-    string inputTitle;
-    Console.Write("Inserisca il nome dell'attività: ");
-    inputTitle = Console.ReadLine();
-    while (!Activity.isTitleValid(inputTitle)) {
-        Console.Write("Il nome dell'attività non può essere vuoto, riprova: ");
-        inputTitle = Console.ReadLine();
-    }
+    string inputTitle = ActivitySelector.ValidTitleFromInput("Inserisca il nome dell'attività: ");
 
     // Prendi data dall'utente
-    Console.Write("Inserisca la data dell'attività (gg/mm/yyyy): ");
-    string? inputDate = Console.ReadLine();
-
-    DateTime eventDate;
-    while (!Activity.TryParseDate(inputDate, out eventDate)) {
-        Console.Write("La data da lei inserita è invalida, inserisca la data nel formato (gg/dd/yyyy): ");
-        inputDate = Console.ReadLine();
-    }
+    DateTime inputDate = ActivitySelector.ValidDateTimeFromInput("Inserisca la data dell'attività (gg/mm/yyyy): ");
 
     using var db = new ToDoListContext();
-    db.Activities.Add(new Activity(title: inputTitle, date: eventDate, state: ActivityState.Unfinished));
+    db.Activities.Add(new Activity(title: inputTitle, date: inputDate, state: ActivityState.Unfinished));
     Console.WriteLine($"Apportati {db.SaveChanges()} cambiamento\\i al database");
 
 
@@ -141,7 +178,7 @@ void ModifyActivityTitle() {
         Console.Write($"Trovata un'attività \"{activityFound.Title}\", qual'è il nuovo titolo?: ");
         string newTitle = Console.ReadLine();
 
-        while (!Activity.isTitleValid(newTitle)) {
+        while (!Activity.IsTitleValid(newTitle)) {
             Console.Write($"Il nuovo titolo non è valido, riprova: ");
             newTitle = Console.ReadLine().Trim();
         }
@@ -165,36 +202,15 @@ void ModifyActivityState() {
 
     int idToChange = ActivitySelector.ValidIdFromInput(prompt: "Inserisci l'Id dell'attività a cui modificare lo stato: ");
 
-    // TODO: Aggiornare funzione per usare ActivitySelector.SelectById
-    foreach (Activity activity in db.Activities) {
-        if (activity.ActivityId == idToChange) {
-            Console.WriteLine($"Indichi il nuovo stato dell'attività \"{activity.Title}\":");
-            Console.WriteLine("[1] Non finita");
-            Console.WriteLine("[2] In corso");
-            Console.WriteLine("[3] Finita");
-            int ChangeState;
-            while (!int.TryParse(Console.ReadLine(), out ChangeState) | ChangeState < 1 | ChangeState > 3) {
-                Console.Write("L'opzione scelta non è valida, riprova: ");
-            }
+    Activity? activity = db.Activities.SelectActivityById(idToChange);
 
-            switch (ChangeState) {
-                case 1:
-                    Console.WriteLine($"L'attività \"{activity.Title}\" avrà come nuovo stato \"Non finita\"");
-                    activity.State = ActivityState.Unfinished;
-                    Console.WriteLine($"Apportati {db.SaveChanges()} cambiamento\\i al database");
-                    break;
-                case 2:
-                    Console.WriteLine($"L'attività \"{activity.Title}\" avrà come nuovo stato \"In corso\"");
-                    activity.State = ActivityState.Ongoing;
-                    Console.WriteLine($"Apportati {db.SaveChanges()} cambiamento\\i al database");
-                    break;
-                case 3:
-                    Console.WriteLine($"L'attività \"{activity.Title}\" avrà come nuovo stato \"Finita\"");
-                    activity.State = ActivityState.Finished;
-                    Console.WriteLine($"Apportati {db.SaveChanges()} cambiamento\\i al database");
-                    break;
-            }
-        }
+    if (activity != null) {
+        ActivityState newState = ActivitySelector.ValidStateFromInput($"Indichi il nuovo stato dell'attività \"{activity.Title}\": ");
+        Console.WriteLine($"L'attività \"{activity.Title}\" avrà come nuovo stato \"{newState}\"");
+        activity.State = newState;
+        Console.WriteLine($"Apportato\\i {db.SaveChanges()} cambiamento\\i al database");
+    } else {
+        Console.WriteLine("Non è stata trovata nessuna attività con quell'Id.");
     }
 
     Console.WriteLine("Premi invio per continuare...");
@@ -208,20 +224,14 @@ void ModifyActivityDate() {
     int idToFind = ActivitySelector.ValidIdFromInput(prompt: "Inserisci l'Id dell'attività a cui modificare la data: ");
 
     using var db = new ToDoListContext();
-    var activityFoundDate = db.Activities.SelectActivityById(idToFind);
+    var activityFound = db.Activities.SelectActivityById(idToFind);
 
 
-    if (activityFoundDate != null) {
-        Console.Write($"Trovata un'attività \"{activityFoundDate.Title}\", qual'è la nuova data?: [gg/dd/yyyy] ");
-        DateTime newDate = DateTime.Parse(Console.ReadLine());
+    if (activityFound != null) {
+        DateTime newDate = ActivitySelector.ValidDateTimeFromInput(prompt: $"Trovata un'attività \"{activityFound.Title}\", qual'è la nuova data?: [gg/dd/yyyy] ");
 
-        while (!Activity.isDateValid(newDate)) {
-            Console.Write($"La nuova data non è valida, riprova: ");
-            newDate = DateTime.Parse(Console.ReadLine());
-        }
-
-        Console.WriteLine($"Aggiornata la data di \"{activityFoundDate.Title}\" da \"{activityFoundDate.Date}\" a \"{newDate}\"");
-        activityFoundDate.Date = newDate;
+        Console.WriteLine($"Aggiornata la data di \"{activityFound.Title}\" da \"{activityFound.Date}\" a \"{newDate}\"");
+        activityFound.Date = newDate;
         Console.WriteLine($"Apportati {db.SaveChanges()} cambiamento\\i al database");
     }
     else {
@@ -251,3 +261,4 @@ void ShowUnfinishedActivities() {
     Console.WriteLine("Premi invio per continuare...");
     Console.ReadLine();
 }
+

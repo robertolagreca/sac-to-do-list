@@ -27,15 +27,59 @@ namespace TheToDoList {
             return id;
         }
 
-        public static int ValidIdFromInput(string prompt)
-        {
+        public static int ValidIdFromInput(string prompt) {
             Console.Write(prompt);
-            int id;
-            while (!int.TryParse(Console.ReadLine(), out id))
-            {
-                Console.Write("L'id che hai inserito non è un numero valido, riprova: ");
+            return ValidIdFromInput();
+        }
+
+        public static string ValidTitleFromInput() {
+            string inputTitle;
+            inputTitle = Console.ReadLine();
+            while (!Activity.IsTitleValid(inputTitle)) {
+                Console.Write("Il nome dell'attività non può essere vuoto, riprova: ");
+                inputTitle = Console.ReadLine();
             }
-            return id;
+
+            return inputTitle;
+        }
+
+        public static string ValidTitleFromInput(string prompt) {
+            Console.Write(prompt);
+            return ValidTitleFromInput();
+        }
+
+        public static DateTime ValidDateTimeFromInput() {
+            string? inputDate = Console.ReadLine();
+
+            DateTime eventDate;
+            while (!Activity.TryParseDate(inputDate, out eventDate)) {
+                Console.Write("La data da lei inserita è invalida, inserisca la data nel formato (gg/dd/yyyy): ");
+                inputDate = Console.ReadLine();
+            }
+
+            return eventDate;
+        }
+
+        public static DateTime ValidDateTimeFromInput(string prompt) {
+            Console.Write(prompt);
+            return ValidDateTimeFromInput();
+        }
+
+        public static ActivityState ValidStateFromInput() {
+            Console.WriteLine("\n[1] Non finita");
+            Console.WriteLine("[2] In corso");
+            Console.WriteLine("[3] Finita");
+            int choice;
+            while (!int.TryParse(Console.ReadLine(), out choice) | choice < 1 | choice > 3) {
+                Console.Write("L'opzione scelta non è valida, riprova: ");
+            }
+
+            return (ActivityState)choice - 1;
+        }
+
+        public static ActivityState ValidStateFromInput(string prompt) {
+            Console.WriteLine(prompt);
+            return ValidStateFromInput();
         }
 
         public static IEnumerable<Activity> SelectUnfinishedActivities(this IEnumerable<Activity> activities) {
