@@ -55,13 +55,18 @@ while (true) {
 void CloseProgram() { Environment.Exit(0); }
 
 // METODO 1: Stampa tutte le attività
+// TODO: Ricerche di default
+// TODO: Tags
+// TODO: Impiegato assegnato ad attività
+// TODO: Mostra tutte le tag nel database
+// TODO: Sistema di logs
 void ShowActivities() {
 
     Console.Clear();
-    using (var db = new ToDoListContext()) {
-        foreach (Activity activity in db.Activities.OrderBy(a => a.Date)) {
-            Console.WriteLine(activity);
-        }
+    using var db = new ToDoListContext();
+
+    foreach (Activity activity in db.Activities.OrderBy(a => a.Date)) {
+        Console.WriteLine(activity);
     }
 
     Console.WriteLine("Premi invio per continuare...");
@@ -94,7 +99,7 @@ void AddActivity() {
 
     using var db = new ToDoListContext();
     db.Activities.Add(new Activity(title: inputTitle, date: eventDate, state: ActivityState.Unfinished));
-    Console.WriteLine($"Apportati {db.SaveChanges()} cambiamenti al database");
+    Console.WriteLine($"Apportati {db.SaveChanges()} cambiamento\\i al database");
 
 
     Console.WriteLine("Premi invio per continuare...");
@@ -116,7 +121,7 @@ void RemoveActivity() {
         }
     }
 
-    Console.WriteLine($"Apportati {db.SaveChanges()} cambiamenti al database");
+    Console.WriteLine($"Apportati {db.SaveChanges()} cambiamento\\i al database");
 
     Console.WriteLine("Premi invio per continuare...");
     Console.ReadLine();
@@ -143,7 +148,7 @@ void ModifyActivityTitle() {
 
         Console.WriteLine($"Aggiornato il titolo da \"{activityFound.Title}\" a \"{newTitle}\"");
         activityFound.Title = newTitle;
-        Console.WriteLine($"Apportati {db.SaveChanges()} cambiamenti al database");
+        Console.WriteLine($"Apportati {db.SaveChanges()} cambiamento\\i al database");
     }
     else {
         Console.WriteLine("Non sono state trovate attività con quell'Id.");
@@ -176,17 +181,17 @@ void ModifyActivityState() {
                 case 1:
                     Console.WriteLine($"L'attività \"{activity.Title}\" avrà come nuovo stato \"Non finita\"");
                     activity.State = ActivityState.Unfinished;
-                    Console.WriteLine($"Apportati {db.SaveChanges()} cambiamenti al database");
+                    Console.WriteLine($"Apportati {db.SaveChanges()} cambiamento\\i al database");
                     break;
                 case 2:
                     Console.WriteLine($"L'attività \"{activity.Title}\" avrà come nuovo stato \"In corso\"");
                     activity.State = ActivityState.Ongoing;
-                    Console.WriteLine($"Apportati {db.SaveChanges()} cambiamenti al database");
+                    Console.WriteLine($"Apportati {db.SaveChanges()} cambiamento\\i al database");
                     break;
                 case 3:
                     Console.WriteLine($"L'attività \"{activity.Title}\" avrà come nuovo stato \"Finita\"");
                     activity.State = ActivityState.Finished;
-                    Console.WriteLine($"Apportati {db.SaveChanges()} cambiamenti al database");
+                    Console.WriteLine($"Apportati {db.SaveChanges()} cambiamento\\i al database");
                     break;
             }
         }
@@ -215,9 +220,9 @@ void ModifyActivityDate() {
             newDate = DateTime.Parse(Console.ReadLine());
         }
 
-        Console.WriteLine($"Aggiornata la data di \"{activityFoundDate.Title}\" da \"{activityFoundDate.Date}\" a //\"{newDate}\"");
+        Console.WriteLine($"Aggiornata la data di \"{activityFoundDate.Title}\" da \"{activityFoundDate.Date}\" a \"{newDate}\"");
         activityFoundDate.Date = newDate;
-        Console.WriteLine($"Apportati {db.SaveChanges()} cambiamenti al database");
+        Console.WriteLine($"Apportati {db.SaveChanges()} cambiamento\\i al database");
     }
     else {
         Console.WriteLine("Non sono state trovate attività con quell'Id.");
