@@ -1,20 +1,20 @@
-﻿using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿namespace TheToDoList {
+    public class ToDoListContext : DbContext {
+        private const string connectionString = "Data Source=localhost;Database=ToDoListDB;" +
+            "Integrated Security=True;TrustServerCertificate=True";
 
-namespace TheToDoList
-{
-    public class ToDoListContext: DbContext
-    {
         public DbSet<Activity> Activities { get; set; }
+        public DbSet<Tag> Tags { get; set; }
 
-        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        {
-            optionsBuilder.UseSqlServer("Data Source=localhost;Database=ToDoListDB;" +
-                                        "Integrated Security=True;TrustServerCertificate=True");
+        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder) {
+            optionsBuilder
+                .UseSqlServer(connectionString);
+        }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder) {
+            modelBuilder.Entity<Activity>()
+                .HasMany(a => a.Tags)
+                .WithMany(t => t.Activities);
         }
     }
 }

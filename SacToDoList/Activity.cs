@@ -22,9 +22,11 @@ namespace TheToDoList {
         public ActivityState State { get; set; } = ActivityState.Unfinished;
 
         // RELAZIONI
-        public List<Tag> Tags { get; set; }
+        public List<Tag> Tags { get; set; } = new();
 
         // COSTRUTTORI
+        public Activity() { }
+
         public Activity(string title, DateTime? date = null, ActivityState state = ActivityState.Unfinished) {
             Title = title;
             Date = date;

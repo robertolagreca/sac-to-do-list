@@ -11,7 +11,9 @@
         [MaxLength(128)]
         public string Text { get; set; }
 
-        public List<Activity> activities { get; set; }
+        public List<Activity> Activities { get; set; }
+
+        public Tag() { }
 
         public Tag(string text) {
             Text = text;
@@ -23,6 +25,14 @@
 
         public static implicit operator string(Tag tag) {
             return tag.Text;
+        }
+
+        public static implicit operator Tag(string text) {
+            return new Tag(text);
+        }
+
+        public static bool IsTitleValid(string title) {
+            return !string.IsNullOrWhiteSpace(title) && title.Length <= 128;
         }
     }
 }

@@ -29,7 +29,11 @@ Dictionary<string, Action> choices = new() {
     { "Modifica il testo di un'attività inserita precedentemente", ModifyActivityTitle},
     { "Modifica lo stato di un'attività inserita precedentemente", ModifyActivityState},
     { "Aggiungi o modifica una data ad un'attività inserita precedentemente", ModifyActivityDate},
-    { "Visualizza solo le attività ancora da fare, paginate di 3 in 3", ShowUnfinishedActivities}
+    { "Visualizza solo le attività ancora da fare, paginate di 3 in 3", ShowUnfinishedActivities},
+    { "Mostra tags nel sistema", ShowTags },
+    { "Aggiungi una tag al sistema", AddTag },
+    { "Rimuovi una tag dal sistema", RemoveTag },
+    { "Modifica una tag nel sistema", ModifyTag }
 };
 
 while (true) {
@@ -111,6 +115,8 @@ void ShowActivities() {
     Console.Clear();
     if (activities.Any()) {
         foreach (Activity activity in activities.OrderBy(a => a.Date)) {
+            db.Entry(activity).Collection(a => a.Tags).Load();
+            // Devi dire al database di, data un'attività, caricarne la collezione di tags
             Console.WriteLine(activity);
         }
     }
@@ -209,7 +215,8 @@ void ModifyActivityState() {
         Console.WriteLine($"L'attività \"{activity.Title}\" avrà come nuovo stato \"{newState}\"");
         activity.State = newState;
         Console.WriteLine($"Apportato\\i {db.SaveChanges()} cambiamento\\i al database");
-    } else {
+    }
+    else {
         Console.WriteLine("Non è stata trovata nessuna attività con quell'Id.");
     }
 
@@ -262,3 +269,102 @@ void ShowUnfinishedActivities() {
     Console.ReadLine();
 }
 
+// METODO 8: Mostra le tags nel database
+void ShowTags() {
+    Console.Clear();
+
+    using ToDoListContext db = new();
+    IEnumerable<Tag> tags = db.Tags.OrderBy(t => t.Id);
+
+    foreach (Tag tag in tags) {
+        Console.WriteLine($"[{tag.Id}] {tag}");
+    }
+
+    Console.WriteLine("Premi invio per continuare...");
+    Console.ReadLine();
+}
+
+// METODO 9: Aggiungi una tag al database
+void AddTag() {
+    Console.Clear();
+    using var db = new ToDoListContext();
+
+    int idToAddTag = ActivitySelector.ValidIdFromInput(prompt: "Inserisci l'Id dell'attività a cui aggiungere un tag: ");
+
+    Activity? ActivityToAddTag = db.Activities.SelectActivityById(idToAddTag);
+
+    if (ActivityToAddTag != null) {
+        Console.Write("Inserisci la tag da inserire: ");
+        Tag newTag = Console.ReadLine().Trim();
+        while (!Tag.IsTitleValid(newTag)) {
+            Console.Write($"Il nuovo tag non è valido, riprova: ");
+            newTag = Console.ReadLine().Trim();
+        }
+        Console.WriteLine($"Il nuovo tag \"{newTag}\" è stato aggiunto all'attività \"{ActivityToAddTag.Title}\".");
+        ActivityToAddTag.Tags.Add(newTag);
+        Console.WriteLine($"Apportati {db.SaveChanges()} cambiamento\\i al database");
+        
+        Console.WriteLine("Premi invio per continuare...");
+        Console.ReadLine();
+    }
+    else {
+        Console.WriteLine("Non è stata trovata nessuna attività con quell'Id.");
+    }
+}
+
+// METODO 10: Rimuovi una tag dal database
+void RemoveTag() {
+    Console.Clear();
+    using var db = new ToDoListContext();
+
+    int idTagToRemove = ActivitySelector.ValidIdFromInput(prompt: "Inserisci l'Id del tag da rimuovere: ");
+
+    foreach (Tag tag in db.Tags) {
+        if (tag.Id == idTagToRemove) {
+            db.Tags.Remove(tag);
+            Console.WriteLine($"Rimosso tag \"{tag.Text}\" con id {tag.Id}");
+            break;
+        }
+    }
+
+    Console.WriteLine($"Apportati {db.SaveChanges()} cambiamento\\i al database");
+
+    Console.WriteLine("Premi invio per continuare...");
+    Console.ReadLine();
+}
+
+
+// METODO 11: Modifica una tag nel database
+void ModifyTag() {
+    Console.Clear();
+    using var db = new ToDoListContext();
+
+    // Prendi un Id valido
+    int idTagToModify = ActivitySelector.ValidIdFromInput(prompt: "Inserisci l'Id del Tag da modificare: ");
+
+    // Se c'è un'attività con 'Id, modifica il titolo
+    var tagFound = db.Tags.SelectTagById(idTagToModify);
+    if (tagFound != null)
+    {
+        Console.Write($"Trovato un tag \"{tagFound.Id}\", inserisci nuovo nome per tag: ");
+        string newTag = Console.ReadLine();
+
+        while (!Tag.IsTitleValid(newTag))
+        {
+            Console.Write($"Il nuovo tag non è valido, riprova: ");
+           newTag = Console.ReadLine().Trim();
+        }
+
+        Console.WriteLine($"Aggiornato il tag da \"{tagFound.Text}\" a \"{newTag}\"");
+        tagFound.Text = newTag;
+        Console.WriteLine($"Apportati {db.SaveChanges()} cambiamento\\i al database");
+    }
+    else
+    {
+        Console.WriteLine("Non sono state trovate attività con quell'Id.");
+    }
+
+    Console.WriteLine("Premi invio per continuare...");
+    Console.ReadLine();
+
+}
